@@ -1,0 +1,76 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Customers</h2>
+<p>
+    @Html.ActionLink("New Customer", "CustomerForm", "Customers", null, new { @class = "btn btn-primary" })
+</p>
+
+
+    <table id="tblCustomers" class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>Customer</th>
+                <th>Membership Type</th>
+                <th>Delete</th>
+            </tr>
+        </thead>
+        <tbody>
+            @*@foreach (var customer in Model)
+            {
+                <tr>
+                    <td>@Html.ActionLink(customer.Name, "Edit", "Customers", new { id = customer.Id }, new { @class = "toplink" })</td>
+                    <td>@customer.MembershipType.Name</td>
+                    <td><button data-customer-id="@customer.Id" type="button" class="btn-link js-delete" id="btnDelete">Delete</button></td>
+                </tr>
+
+            }*@
+        </tbody>
+    </table>
+
+@section scripts
+{
+    <script>
+        $(document).ready(function () {
+            var customersTable = $("#tblCustomers").DataTable({
+                ajax: {
+                    url: "/api/customers",
+                    dataSrc:""
+                },
+                columns: [
+                    {
+                        data: "Name",
+                        render: function (data, type, customer) {
+                            return "<a href='/customers/edit/" + customer.id + "'>" + customer.name + "</a>"
+                        }
+                    },
+                    {
+                        data: "membershipType.name"
+                    },
+                    {
+                        data: "id",
+                        render: function (data) {
+                            return "<button data-customer-id='"+ data +"' type='button' class='btn-link js-delete' id='btnDelete'>Delete</button>"
+                        }
+                    }
+                ]
+            });
+            $("#tblCustomers").on("click",".js-delete", function () {
+                var caller = $(this);
+                bootbox.confirm("Deseja realmente excluir este item?", function (result) {
+                    if (result) {
+                        $.ajax({
+                            url: "/api/customers/" + caller.attr("data-customer-id"),
+                            method: "DELETE",
+                            success: function () {
+                                customersTable.row(caller.parents("tr")).remove().draw();
+                            }
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+}
