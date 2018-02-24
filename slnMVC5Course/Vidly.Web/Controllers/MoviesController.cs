@@ -1,8 +1,11 @@
-﻿using System;
+﻿using AutoMapper;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using Vidly.Web.Constants;
+using Vidly.Web.Dtos;
 using Vidly.Web.Models;
 using Vidly.Web.ViewModels;
 
@@ -17,7 +20,9 @@ namespace Vidly.Web.Controllers
         }
         public ActionResult Index()
         {
-            return View(GetMovies());
+            if (User.IsInRole(RoleName.CanManageMovies))
+                return View("List");
+            return View("ReadOnlyList");
         }
         [Route("Movies/Details/{id:int}")]
         public ActionResult Details(int id)
@@ -29,6 +34,7 @@ namespace Vidly.Web.Controllers
             }
             return View(movie);
         }
+        [Authorize(Roles =(RoleName.CanManageMovies))]
         public ActionResult MovieForm()
         {
             var genres = _context.Genres.ToList();
@@ -40,36 +46,37 @@ namespace Vidly.Web.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Save(MovieFormViewModel model)
+        public ActionResult Save(Movie movie)
         {
             if (!ModelState.IsValid)
             {
-                var genres = _context.Genres.ToList();
-                MovieFormViewModel viewModel = new MovieFormViewModel()
+                var viewModel = new MovieFormViewModel(movie)
                 {
-                    Genres = genres,
-                    Movie = model.Movie
+                    Genres = _context.Genres.ToList()
                 };
+
                 return View("MovieForm", viewModel);
             }
-            if (model.Movie.Id.Equals(0))
+
+            if (movie.Id == 0)
             {
-                model.Movie.AddedDate = DateTime.Now;
-                _context.Movie.Add(model.Movie);
+                movie.AddedDate = DateTime.Now;
+                _context.Movie.Add(movie);
             }
             else
             {
-                Movie movieInDB = GetMovies().Where(x => x.Id.Equals(model.Movie.Id)).Single();
-                
-                movieInDB.GenreId = model.Movie.GenreId;
-                movieInDB.Name = model.Movie.Name;
-                movieInDB.NumberInStock = model.Movie.NumberInStock;
-                movieInDB.ReleaseDate = model.Movie.ReleaseDate;
+                var movieInDb = _context.Movie.Single(m => m.Id == movie.Id);
+                movieInDb.Name = movie.Name;
+                movieInDb.GenreId = movie.GenreId;
+                movieInDb.NumberInStock = movie.NumberInStock;
+                movieInDb.ReleaseDate = movie.ReleaseDate;
             }
 
             _context.SaveChanges();
+
             return RedirectToAction("Index", "Movies");
         }
+        [Authorize(Roles = (RoleName.CanManageMovies))]
         public ActionResult Edit(int id)
         {
             Movie movie = GetMovies().Where(x => x.Id.Equals(id)).FirstOrDefault();
@@ -78,10 +85,9 @@ namespace Vidly.Web.Controllers
                 return HttpNotFound();
             }
             var genres = _context.Genres.ToList();
-            MovieFormViewModel viewModel = new MovieFormViewModel()
+            MovieFormViewModel viewModel = new MovieFormViewModel(movie)
             {
-                Genres = genres,
-                Movie = movie
+                Genres = genres
             };
             return View("MovieForm", viewModel);
         }

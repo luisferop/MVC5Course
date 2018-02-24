@@ -5,6 +5,10 @@ namespace Vidly.Web.Models
 {
     public class Movie
     {
+        public Movie()
+        {
+            Id = 0;
+        }
         public int Id { get; set; }
 
         [Required]
