@@ -17,7 +17,7 @@ namespace Vidly.Web.Controllers.Api
         {
             _context = new ApplicationDbContext();
         }
-
+        [HttpGet]
         public IEnumerable<MovieDto> GetMovies(string query = null)
         {
             var moviesQuery = _context.Movie

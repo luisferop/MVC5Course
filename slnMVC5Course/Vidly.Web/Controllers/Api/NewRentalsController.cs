@@ -16,12 +16,19 @@ namespace Vidly.Web.Controllers.Api
         {
             _context = new ApplicationDbContext();
         }
+        [HttpGet]
+        public IEnumerable<NewRentalDto> GetNewRentals()
+        {
+            return new List<NewRentalDto>();
+        }
         [HttpPost]
         public IHttpActionResult CreateNewRentals(NewRentalDto newRental)
         {
+          
             var customer = _context.Customer.Single(
                 c => c.Id == newRental.CustomerId);
 
+         
             var movies = _context.Movie.Where(
                 m => newRental.MovieIds.Contains(m.Id)).ToList();
 
