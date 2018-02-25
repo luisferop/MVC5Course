@@ -23,7 +23,7 @@ namespace Vidly.Web.Controllers.Api
                 .Include("MembershipType").ToList();
 
             if (!String.IsNullOrWhiteSpace(query))
-                customersQuery = customersQuery.Where(c => c.Name.Contains(query)).ToList();
+                customersQuery = customersQuery.Where(c => c.Name.ToLower().Contains(query.ToLower())).ToList();
 
             var customerDtos = customersQuery
                 .Select(Mapper.Map<Customer, CustomerDto>);

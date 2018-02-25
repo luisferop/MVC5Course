@@ -21,11 +21,12 @@ namespace Vidly.Web.Controllers.Api
         public IEnumerable<MovieDto> GetMovies(string query = null)
         {
             var moviesQuery = _context.Movie
-                .Include("Genre").ToList();
-                //.Where(m => m.NumberAvailable > 0);
+                .Include("Genre")
+                .Where(m => m.NumberAvailable > 0)
+                .ToList();
 
             if (!String.IsNullOrWhiteSpace(query))
-                moviesQuery = moviesQuery.Where(m => m.Name.Contains(query)).ToList();
+                moviesQuery = moviesQuery.Where(m => m.Name.ToLower().Contains(query.ToLower())).ToList();
 
             return moviesQuery
                 .ToList()
